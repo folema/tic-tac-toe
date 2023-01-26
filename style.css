@@ -1,0 +1,11 @@
+.main-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tile{
+    border: 2px solid black;
+    width: 3rem;
+    height: 3rem;
+}
