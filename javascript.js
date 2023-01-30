@@ -1,18 +1,71 @@
-const player = (name, marker, madeMove)=>{
+const player = (name, marker, madeMove, winArr)=>{
     this.name = name
     this.marker = marker
     this.madeMove = madeMove
+    this.winArr = winArr
 
-    return {name, marker, madeMove}
+    return {name, marker, madeMove, winArr}
 }
-const playerOne = player("john", "X", false)
-const playerTwo = player("Mike", "O", false)
+const playerOne = player("john", "X", false, "XXX")
+const playerTwo = player("Mike", "O", false, "OOO")
 
-const placeMarker = (mark, arr, pos)=>{
+const placeMarker = (players, arr, pos)=>{
     if (arr[pos] === ""){
-        arr[pos]=mark 
+        arr[pos]=players.marker 
+        checkWinner(arr, players)
     }
-    return arr
+    else {
+        interface(arr, players)
+    }
+    return {arr, players} 
+}
+
+const checkWinner= (arr, players)=>{
+    let win = []
+    let winner = false
+    
+       win.push(arr[0],arr[1],arr[2])
+            if(win.join("")===players.winArr) winner = true 
+            else win =[]
+    
+    
+        win.push(arr[3],arr[4],arr[5])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        win.push(arr[6],arr[7],arr[8])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        win.push(arr[0],arr[4],arr[8])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        win.push(arr[2],arr[4],arr[6])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        win.push(arr[0],arr[3],arr[6])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        win.push(arr[1],arr[4],arr[7])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        win.push(arr[2],arr[5],arr[8])
+            if(win.join("")===players.winArr) winner = true
+            else win = []
+    
+    
+        if (winner === true) gameOver(players)
+        else return
     
 }
 
@@ -24,13 +77,15 @@ const createGameBoard = (()=>{
 const board = createGameBoard()
 
 const play = (players, arr, pos)=>{
-     placeMarker(players.marker, arr.gameboardArr, pos)
+    let mainContainer = document.querySelector(".main-container")
+     placeMarker(players, arr.gameboardArr, pos)
+     while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
+
 }
 
-const interface = ((arr, players,)=>{
+const interface = (arr, players)=>{
     const array = arr.gameboardArr
-    const mainContainer = document.querySelector(".main-container")
-    
+    let mainContainer = document.querySelector(".main-container")
     let i = 0
     while (i< array.length){
         const tile = document.createElement("div")
@@ -38,16 +93,13 @@ const interface = ((arr, players,)=>{
         tile.className="tile"
         tile.id = i
         tile.addEventListener(`click`, (e)=>{
-            let place=e.target.id
-            play(players, arr, place)
-            while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
-            game(playerOne, playerTwo, board)
+            let pos=e.target.id
+            play(players, arr, pos)
         })
         mainContainer.appendChild(tile)
         i++
     }
-   
-})
+}
 
 const game = (player1, player2, board)=>{
     if (player1.madeMove == false){
@@ -55,7 +107,7 @@ const game = (player1, player2, board)=>{
         player1.madeMove = true
         player2.madeMove = false
     }
-    else {
+    else if(player1.madeMove == true) {
           interface(board, player2)
           player1.madeMove = false
           player2.madeMove = true
@@ -63,10 +115,10 @@ const game = (player1, player2, board)=>{
     return {player1, player2}
 }
 
+const gameOver = (players)=>{
+    let container = document.querySelector(".main-container")
+    while (container.firstChild)container.removeChild(container.firstChild)
+    
+}
+
 game(playerOne, playerTwo, board)
-
-
-
-
-
-
