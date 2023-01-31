@@ -1,124 +1,94 @@
-const player = (name, marker, madeMove, winArr)=>{
+const player = (name, marker)=>{
     this.name = name
     this.marker = marker
-    this.madeMove = madeMove
-    this.winArr = winArr
-
-    return {name, marker, madeMove, winArr}
+    let madeMove = false
+    return {name, marker, madeMove}
 }
-const playerOne = player("john", "X", false, "XXX")
-const playerTwo = player("Mike", "O", false, "OOO")
 
-const placeMarker = (players, arr, pos)=>{
-    if (arr[pos] === ""){
-        arr[pos]=players.marker 
-        checkWinner(arr, players)
+const init = (()=>{   
+    const gameboardArr = ["","","","","","","","",""]
+    const mainContainer = document.querySelector(".main-container")
+    const playerReg = ()=>{
+        mainContainer.textContent ="Please enter player names"
+        let playerOneName = document.createElement("input")
+        playerOneName.placeholder ="Player one"
+        mainContainer.appendChild(playerOneName)
+        let playerTwoName = document.createElement("input")
+        playerTwoName.placeholder = "Player Two"
+        mainContainer.appendChild(playerTwoName)
+        let createPlayers = document.createElement("button")
+        createPlayers.textContent = "Start game"
+        createPlayers.addEventListener("click", ()=>{
+            let player1 = player(playerOneName.value, "X")
+            let player2 = player(playerTwoName.value, "O")
+            interface(player1, player2)
+            })
+        mainContainer.appendChild(createPlayers) 
     }
-    else {
-        interface(arr, players)
+    const interface = (player1, player2)=>{
+        while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
+        mainContainer.textContent=""
+        let i = 0
+        while (i< gameboardArr.length){
+            let tile = document. createElement ("div")
+            tile.textContent = gameboardArr[i]
+            tile.className = "tile"
+            tile.id = i
+            tile.addEventListener(`click`, (e)=>{
+                let pos = e.target.id
+                play(pos, player1, player2)
+            })
+            mainContainer.appendChild(tile)
+            i++
+        }
     }
-    return {arr, players} 
-}
-
-const checkWinner= (arr, players)=>{
-    let win = []
-    let winner = false
-    
-       win.push(arr[0],arr[1],arr[2])
-            if(win.join("")===players.winArr) winner = true 
-            else win =[]
-    
-    
-        win.push(arr[3],arr[4],arr[5])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        win.push(arr[6],arr[7],arr[8])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        win.push(arr[0],arr[4],arr[8])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        win.push(arr[2],arr[4],arr[6])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        win.push(arr[0],arr[3],arr[6])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        win.push(arr[1],arr[4],arr[7])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        win.push(arr[2],arr[5],arr[8])
-            if(win.join("")===players.winArr) winner = true
-            else win = []
-    
-    
-        if (winner === true) gameOver(players)
-        else return
-    
-}
-
-const createGameBoard = (()=>{
-    this.gameboardArr = ["","","","","","","","",""]
-    return {gameboardArr}
-})
-
-const board = createGameBoard()
-
-const play = (players, arr, pos)=>{
-    let mainContainer = document.querySelector(".main-container")
-     placeMarker(players, arr.gameboardArr, pos)
-     while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
-
-}
-
-const interface = (arr, players)=>{
-    const array = arr.gameboardArr
-    let mainContainer = document.querySelector(".main-container")
-    let i = 0
-    while (i< array.length){
-        const tile = document.createElement("div")
-        tile.textContent = array[i]
-        tile.className="tile"
-        tile.id = i
-        tile.addEventListener(`click`, (e)=>{
-            let pos=e.target.id
-            play(players, arr, pos)
-        })
-        mainContainer.appendChild(tile)
-        i++
+    const play = (pos, player1, player2)=>{
+        console.log(player1)
+        console.log(player2)
+        if (player1.madeMove == false){
+            placeMarker(player1, pos)
+            player2.madeMove = false  
+        }
+        else if(player1.madeMove == true) {
+              placeMarker(player2, pos)
+              player1.madeMove = false     
+        }
     }
-}
-
-const game = (player1, player2, board)=>{
-    if (player1.madeMove == false){
-        interface(board, player1)
-        player1.madeMove = true
-        player2.madeMove = false
+    const placeMarker = (player, pos)=>{  
+        if (gameboardArr[pos] === ""){
+            gameboardArr[pos]=player.marker 
+            let tile = document.getElementById(pos)
+            tile.textContent = gameboardArr[pos]  
+            checkWinner(player)
+            player.madeMove = true  
+        }
+        else player.madeMove = false   
     }
-    else if(player1.madeMove == true) {
-          interface(board, player2)
-          player1.madeMove = false
-          player2.madeMove = true
+    const checkWinner = (player)=>{
+        if (gameboardArr[0]==player.marker && gameboardArr[1]==player.marker && gameboardArr[2]==player.marker)gameOver(player)
+        if (gameboardArr[3]==player.marker && gameboardArr[4]==player.marker && gameboardArr[5]==player.marker)gameOver(player)
+        if (gameboardArr[6]==player.marker && gameboardArr[7]==player.marker && gameboardArr[8]==player.marker)gameOver(player)
+        if (gameboardArr[0]==player.marker && gameboardArr[3]==player.marker && gameboardArr[6]==player.marker)gameOver(player)
+        if (gameboardArr[1]==player.marker && gameboardArr[4]==player.marker && gameboardArr[7]==player.marker)gameOver(player)
+        if (gameboardArr[2]==player.marker && gameboardArr[5]==player.marker && gameboardArr[8]==player.marker)gameOver(player)
+        if (gameboardArr[0]==player.marker && gameboardArr[4]==player.marker && gameboardArr[8]==player.marker)gameOver(player)
+        if (gameboardArr[2]==player.marker && gameboardArr[4]==player.marker && gameboardArr[6]==player.marker)gameOver(player)
+        let count= 0
+        gameboardArr.map(value=>{
+            
+            if (value == "X" || value == "O") count++
+            if (count===9) tie()
+        },0)
     }
-    return {player1, player2}
-}
+    const gameOver = (player)=>{
+        while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
+        mainContainer.textContent = `${player.name} wins!`
+    }
+    const tie = ()=>{
+        while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
+        mainContainer.textContent = "It is a tie"
+    }
+    return {playerReg}
+})();
 
-const gameOver = (players)=>{
-    let container = document.querySelector(".main-container")
-    while (container.firstChild)container.removeChild(container.firstChild)
-    
-}
-
-game(playerOne, playerTwo, board)
+init.playerReg()
