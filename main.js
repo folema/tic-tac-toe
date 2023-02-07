@@ -24,8 +24,9 @@ const pubSub = (()=>{
 const createPlayer = (name, mark)=> {return {name, mark}}
 
 const playerRegistration = (()=>{
-    const mainContainer = document.querySelector(".main-container") 
+    const page = document.querySelector(".page") 
     const regform = document.createElement("div")
+    regform.className = "regform"
     regform.textContent = "Please enter player names"
     const player1Name = document.createElement("input")
     player1Name.placeholder = ("Player 1")
@@ -42,7 +43,7 @@ const playerRegistration = (()=>{
     button.className = "register-button"
     button.addEventListener("click", ()=>events.registerPlayers())
     regform.appendChild(button)
-    mainContainer.appendChild(regform)
+    page.appendChild(regform)
 })()
 
 const events = (()=>{
@@ -61,22 +62,30 @@ const events = (()=>{
 })()
 
 const game = (()=>{
-    const mainContainer = document.querySelector(".main-container")
-    
+    const page = document.querySelector(".page")
+    const mainContainer = document.createElement("div")
+    const title = document.querySelector("h1")
     const makeGameBoard = ()=>{
-        while ( mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
+        while (page.firstChild)page.removeChild(page.firstChild)
+        page.appendChild(title)
+        mainContainer.className = "main-container"
+        page.appendChild(mainContainer)
         let i = 0
         while(i<gameControl.gameArray.length){
             let tile = document.createElement("div")
             tile.className = "tile"
             tile.id = i
             tile.textContent = ""
-            tile.addEventListener("click", (e)=>{
+            tile.addEventListener("click",(e)=>{
                 gameControl.tileClick(e)
             })
             mainContainer.appendChild(tile)
             i++
         }  
+    }
+    const resetTile = ()=>{
+        let tile = document.querySelectorAll(".tile")
+        tile.forEach(tile=>tile.textContent="")
     }
     const updateTile = (data)=>{
         let mark = data[0]
@@ -85,22 +94,28 @@ const game = (()=>{
         tile.textContent = mark
     }
     const gameOver = (winner)=>{
-        let gameWinner = winner[0]
         while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
+        let gameWinner = winner[0]
         let message = document.createElement("div")
         message.className= "win"
+        if (gameWinner.name ==="draw"){
+        message.textContent = "Game over. It is a draw"
+        }
+        else{
         message.textContent = `Game over. The Winner is ${gameWinner.name}`
-        mainContainer.appendChild(message)
+        }
+        page.appendChild(message)
         let newGame = document.createElement("button")
         newGame.textContent = "Re-match"
         newGame.addEventListener("click", ()=>{
             pubSub.publish("newGame")
         })
-        mainContainer.appendChild(newGame)
+        page.appendChild(newGame)
     }
+    
     pubSub.sub("updateArr", updateTile)
     pubSub.sub("checkWinner", gameOver)
-    return {makeGameBoard}
+    return {makeGameBoard, resetTile}
 })()
 
 const gameControl = (()=>{
@@ -158,7 +173,9 @@ const gameControl = (()=>{
         let count = 0
                     gameArray.map(value=>{  
                     if (value == "X" || value == "O") count++
-                    if (count===9) console.log("draw")
+                    if (count===9) {
+                        let player3 = {name: "draw"}
+                        pubSub.publish("checkWinner", player3)}
                 },0)   
     }
     const reMatch = ()=>{
