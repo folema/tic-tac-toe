@@ -23,6 +23,7 @@ const pubSub = (()=>{
 
 const createPlayer = (name, mark)=> {return {name, mark}}
 
+//Start- screen
 const playerRegistration = (()=>{
     const page = document.querySelector(".page") 
     const regform = document.createElement("div")
@@ -45,7 +46,7 @@ const playerRegistration = (()=>{
     regform.appendChild(button)
     page.appendChild(regform)
 })()
-
+//functions used in the register form
 const events = (()=>{
     const player1Name = document.getElementById("player1")
     const player2Name = document.getElementById("player2")
@@ -61,6 +62,7 @@ const events = (()=>{
     return {registerPlayers}
 })()
 
+//Game UI
 const game = (()=>{
     const page = document.querySelector(".page")
     const mainContainer = document.createElement("div")
@@ -118,6 +120,7 @@ const game = (()=>{
     return {makeGameBoard, resetTile}
 })()
 
+//Game logics
 const gameControl = (()=>{
     let gameArray = ["","","","","","","","",""]
     let player1={}
