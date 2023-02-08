@@ -21,7 +21,7 @@ const pubSub = (()=>{
     return {publish, emit, sub}
 })()
 
-const createPlayer = (name, mark)=> {return {name, mark}}
+const createPlayer = (name, mark, isAI)=> {return {name, mark, isAI}}
 
 //Start- screen
 const playerRegistration = (()=>{
@@ -44,22 +44,44 @@ const playerRegistration = (()=>{
     button.className = "register-button"
     button.addEventListener("click", ()=>events.registerPlayers())
     regform.appendChild(button)
+    const onePlayer = document.createElement("button")
+    onePlayer.textContent = "Single player"
+    onePlayer.addEventListener("click", ()=>events.singlePlayer())
+    page.appendChild(onePlayer)
     page.appendChild(regform)
 })()
 //functions used in the register form
 const events = (()=>{
     const player1Name = document.getElementById("player1")
     const player2Name = document.getElementById("player2")
-    const button = document.querySelector(".register-button")
     
     const registerPlayers = ()=>{
-        let player1 = createPlayer(player1Name.value, "X")
-        let player2 = createPlayer(player2Name.value, "O")
+        if (player1Name.value.length<1 || player2Name.value.length<1)alert("Please enter player names")
+        else{
+        let player1 = createPlayer(player1Name.value, "X", false)
+        let player2 = createPlayer(player2Name.value, "O", false)
         pubSub.publish("registerPlayers", player1, player2)
+        }
         return {player1, player2}
     }
-   
-    return {registerPlayers}
+    const singlePlayer = ()=>{
+        if ( player1Name.value.length<1 && player2Name.value.length<1)alert("Please enter a name for the single player")
+        else if (player1Name.value.length<1 && player2Name.value.length<1)alert("Please enter only one name for single player mode")
+        else if ( player1Name.value.length>1 && player2Name.value.length<1){
+            console.log("test")
+             const player1 = createPlayer(player1Name.value, "X", false)
+             const player2 = createPlayer("Computer", "O", true)
+             pubSub.publish("registerPlayers", player1, player2)
+        }
+        else if( player2Name>1 && player1Name<1){
+             const player1 = createPlayer("Computer", "X", true)
+             const player2 = createPlayer(player2Name.value, "O", false)
+             pubSub.publish("registerPlayers", player1, player2)
+        }
+        return {player1, player2}
+        
+    }
+    return {registerPlayers, singlePlayer}
 })()
 
 //Game UI
@@ -67,9 +89,12 @@ const game = (()=>{
     const page = document.querySelector(".page")
     const mainContainer = document.createElement("div")
     const title = document.querySelector("h1")
+    const displayTurn = document.createElement("div")
     const makeGameBoard = ()=>{
         while (page.firstChild)page.removeChild(page.firstChild)
         page.appendChild(title)
+        displayTurn.className = "displayTurn"
+        page.appendChild(displayTurn)
         mainContainer.className = "main-container"
         page.appendChild(mainContainer)
         let i = 0
@@ -83,7 +108,8 @@ const game = (()=>{
             })
             mainContainer.appendChild(tile)
             i++
-        }  
+        } 
+        pubSub.publish("makeGameboard") 
     }
     const resetTile = ()=>{
         let tile = document.querySelectorAll(".tile")
@@ -96,6 +122,7 @@ const game = (()=>{
         tile.textContent = mark
     }
     const gameOver = (winner)=>{
+        page.removeChild(displayTurn)
         while (mainContainer.firstChild)mainContainer.removeChild(mainContainer.firstChild)
         let gameWinner = winner[0]
         let message = document.createElement("div")
@@ -114,7 +141,7 @@ const game = (()=>{
         })
         page.appendChild(newGame)
     }
-    
+    pubSub.sub("splitPlayers",makeGameBoard)
     pubSub.sub("updateArr", updateTile)
     pubSub.sub("checkWinner", gameOver)
     return {makeGameBoard, resetTile}
@@ -129,20 +156,28 @@ const gameControl = (()=>{
     const splitPlayers = (players)=>{
         player1 = players[0]
         player2 = players[1]
-        game.makeGameBoard()
+        console.log(player1, player2)
+        pubSub.publish("splitPlayers", player1)
         return{player1, player2}  
+    }
+    const displayTurnName = ()=>{
+        let displayTurn = document.querySelector(".displayTurn")
+        displayTurn.textContent = `${player1.name}, make your move!`
     }
     const tileClick = (e)=>{
         pubSub.publish("tileClick", e.target.id)
     }
     const turn = (arrpos)=>{
+        let displayTurn = document.querySelector(".displayTurn")
         if (!gameArray.includes("X"))playerTurn = player1.mark
         if (playerTurn==player1.mark){
+            displayTurn.textContent = `${player2.name}, make your move!`
             pubSub.publish("turn", arrpos)
             playerTurn = player2.mark
             return
         }
         if (playerTurn == player2.mark){
+            displayTurn.textContent = `${player1.name}, make your move!`
             pubSub.publish("turn", arrpos)
             playerTurn = player1.mark
             return
@@ -186,6 +221,7 @@ const gameControl = (()=>{
         game.makeGameBoard()
         return gameArray
     }
+    pubSub.sub("makeGameboard", displayTurnName)
     pubSub.sub("registerPlayers", splitPlayers)
     pubSub.sub("tileClick", checkArr)
     pubSub.sub("checkArr", turn)
@@ -193,4 +229,24 @@ const gameControl = (()=>{
     pubSub.sub("updateArr", checkWinner)
     pubSub.sub("newGame", reMatch)
     return {tileClick, splitPlayers, gameArray}
+})()
+
+//ai section
+const ai = (()=>{
+    let choiceNumb = ""
+    const getChoices = ()=>{
+        let tile = document.querySelectorAll(".tile")
+        let aiArr = Array.from(tile)
+        let choices = aiArr.filter(element=>element.textContent=="")
+        let choice = choices[Math.floor(Math.random()*choices.length)]
+        let id = choice.id
+        pubSub.publish("tileClick", id)
+        return {id}
+        
+    }
+    const placeMarker = (input)=>{
+        let tile = document.getElementById(input)
+        tile.textContent = "P"
+    }
+    return {getChoices, placeMarker}
 })()
